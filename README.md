@@ -8,16 +8,16 @@ El flujo de datos es el siguiente:
 
 ```mermaid
 graph LR
-    A[CSV Data] --> B(Python Producer)
-    B -->|100ms interval| C[Kafka Broker KRaft]
+    A[Assetto Corsa Competizione] -->|UDP| B(Python Producer)
+    B -->|Kafka| C[Kafka Broker KRaft]
     C --> D(Spark Structured Streaming)
     D -->|5s Window| E{Threshold Engine}
-    E -->|RPM > Limit| F[Alert! 🚨]
+    E -->|RPM > 7500| F[Alert! 🚨]
 ```
 
 ### Componentes
 
-1.  **Productor (Python)**: Lee datos de un CSV (Kaggle) y los envía a Kafka cada 100ms.
+1.  **Productor (Python)**: Escucha paquetes UDP de ACC y los envía a Kafka en tiempo real.
 2.  **Broker (Kafka)**: Gestiona la ráfaga de datos entrantes (usando KRaft para simplicidad).
 3.  **Consumidor (Spark Structured Streaming)**: Procesa los datos en ventanas de 5 segundos y dispara alertas críticas.
 
