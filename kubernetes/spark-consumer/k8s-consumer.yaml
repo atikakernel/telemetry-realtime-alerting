@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-consumer
+  namespace: telemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-consumer
+  template:
+    metadata:
+      labels:
+        app: spark-consumer
+    spec:
+      containers:
+      - name: spark-consumer
+        image: spark-consumer:latest
+        imagePullPolicy: Never
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka:9092"
+        - name: TOPIC
+          value: "telemetry-acc"
+        # Spark local storage
+        volumeMounts:
+        - name: spark-work-data
+          mountPath: /opt/bitnami/spark/work
+      volumes:
+      - name: spark-work-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-consumer
+  namespace: telemetry
+spec:
+  selector:
+    app: spark-consumer
+  ports:
+  - port: 4040 # Spark UI
+    targetPort: 4040
