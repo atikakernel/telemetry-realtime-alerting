@@ -12,4 +12,5 @@ RUN mkdir -p /app/generated
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# PORT is overridable at runtime (e.g. -e PORT=8001 when 8000 is taken)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

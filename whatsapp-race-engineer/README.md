@@ -62,8 +62,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8001
 ```
+
+Port defaults to `8000` and is overridable via the `PORT` env var. `8001` is used here because Airbyte/`abctl` typically owns `8000` on a data-engineering workstation.
 
 If you do not have Ollama running yet, the service still works with a deterministic fallback narrator.
 

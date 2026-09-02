@@ -91,8 +91,10 @@ cd whatsapp-race-engineer
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8001
 ```
+
+Port `8000` is the default (`PORT` env makes it overridable, also in Docker via `-e PORT=...`). If you run Airbyte/`abctl` locally, it already owns `8000` — hence `8001` above.
 
 Then `POST /demo/query` for coaching JSON (answer + chart + diagram URLs), or open `GET /demo/preview` for a WhatsApp-like mockup. Works without Ollama via a deterministic fallback narrator; set `OLLAMA_BASE_URL` in `.env` to enable the local LLM. Tests: `python -m unittest discover -s tests` (5 tests, all passing).
 
