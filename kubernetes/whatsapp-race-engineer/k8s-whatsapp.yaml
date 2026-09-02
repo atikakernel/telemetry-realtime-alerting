@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whatsapp-race-engineer
+  namespace: telemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whatsapp-race-engineer
+  template:
+    metadata:
+      labels:
+        app: whatsapp-race-engineer
+    spec:
+      containers:
+      - name: whatsapp-race-engineer
+        image: whatsapp-race-engineer:latest
+        imagePullPolicy: Never # Using local images loaded into kind
+        ports:
+        - containerPort: 8000
+        env:
+        - name: OLLAMA_BASE_URL
+          value: "http://host.minikube.internal:11434"
+        - name: OLLAMA_MODEL
+          value: "auto"
+        - name: WHATSAPP_VERIFY_TOKEN
+          value: "acc-race-engineer-demo"
+        # Secrets (set real values via kubectl create secret or env override):
+        # - WHATSAPP_ACCESS_TOKEN
+        # - WHATSAPP_PHONE_NUMBER_ID
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whatsapp-race-engineer
+  namespace: telemetry
+spec:
+  selector:
+    app: whatsapp-race-engineer
+  ports:
+  - port: 8000
+    targetPort: 8000

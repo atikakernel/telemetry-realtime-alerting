@@ -60,6 +60,7 @@ Prepare the containers for the cluster:
 ```bash
 docker build -t acc-producer:latest ./producer
 docker build -t spark-consumer:latest ./spark-consumer
+docker build -t whatsapp-race-engineer:latest ./whatsapp-race-engineer
 ```
 
 ### 2. Load into Cluster
@@ -67,6 +68,7 @@ Since we are using `kind`, we inject the images manually (no Docker Hub needed):
 ```bash
 kind load docker-image acc-producer:latest --name airbyte-abctl-control-plane
 kind load docker-image spark-consumer:latest --name airbyte-abctl-control-plane
+kind load docker-image whatsapp-race-engineer:latest --name airbyte-abctl-control-plane
 ```
 
 ### 3. Deploy Manifests!
@@ -75,7 +77,10 @@ Spin up the entire infrastructure with a single command:
 kubectl apply -f kubernetes/kafka/k8s-kafka.yaml
 kubectl apply -f kubernetes/producer/k8s-producer.yaml
 kubectl apply -f kubernetes/spark-consumer/k8s-consumer.yaml
+kubectl apply -f kubernetes/whatsapp-race-engineer/k8s-whatsapp.yaml
 ```
+
+The WhatsApp bot is reachable inside the cluster at `http://whatsapp-race-engineer.telemetry:8000` (`/demo/query`, `/demo/preview`, `/whatsapp/webhook`). It needs no Kafka access — it answers from the session slice it receives. Point `OLLAMA_BASE_URL` at your Ollama host for LLM narration, otherwise it uses the built-in fallback.
 
 ---
 
