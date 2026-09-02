@@ -76,6 +76,12 @@ OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=auto
 ```
 
+That covers Ollama in a Docker container with port `11434` published, when this service runs on the WSL host. If **both** run in Docker on the same network (e.g. your `ollama` container), point at the container name instead:
+
+```bash
+OLLAMA_BASE_URL=http://ollama:11434
+```
+
 `auto` means:
 
 - Prefer `qwen3:8b` when installed (`ollama pull qwen3:8b`).

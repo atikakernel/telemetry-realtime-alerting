@@ -20,8 +20,12 @@ spec:
         ports:
         - containerPort: 8000
         env:
+        # kind has no host DNS by default: create the cluster with
+        #   kind create cluster --config -  (extraHosts:
+        #   - hostname: host.docker.internal, ip: host-gateway)
+        # or replace with the node's reachable Ollama address.
         - name: OLLAMA_BASE_URL
-          value: "http://host.minikube.internal:11434"
+          value: "http://host.docker.internal:11434"
         - name: OLLAMA_MODEL
           value: "auto"
         - name: WHATSAPP_VERIFY_TOKEN
