@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Env / secrets
+.env
+
+# Spark checkpoints
+checkpoint/
+spark-consumer/checkpoint/
+
+# Generated WhatsApp demo images
+generated/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/

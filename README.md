@@ -32,9 +32,22 @@ graph TD
 ### 🧩 Components
 
 1.  **ACC (Data Source)**: Generates high-frequency telemetry via UDP (Shared Memory).
-2.  **Producer (Python 3.9)**: Acts as a *bridge*. It listens for UDP packets, cleans the data, and publishes it to the `telemetry-acc` Kafka topic.
+2.  **Producer (Python 3.12)**: Acts as a *bridge*. It listens for UDP packets, cleans the data, and publishes it to the `telemetry-acc` Kafka topic. All settings (`UDP_PORT`, `KAFKA_BROKER`, `TOPIC`) are overridable via env vars for Docker/K8s.
 3.  **Broker (Apache Kafka KRaft)**: The heart of messaging. Handles thousands of events per second with full resilience.
 4.  **Consumer (Apache Spark 3.5)**: Massive processing engine. Analyzes telemetry in **5-second sliding windows**, calculates averages, and triggers alerts if configured limits are exceeded.
+5.  **WhatsApp Race Engineer (`whatsapp-race-engineer/`)**: FastAPI service that turns a telemetry session into coaching: a natural-language answer (local LLM via Ollama, with deterministic fallback), a telemetry trend chart PNG, and a session insight diagram PNG. Exposes `POST /demo/query`, a browser preview at `GET /demo/preview`, and a WhatsApp Cloud API webhook at `/whatsapp/webhook`. See its own [README](whatsapp-race-engineer/README.md).
+
+### 🗂️ Project Layout
+
+```text
+.
+├── producer/               # UDP → Kafka bridge (ACC telemetry)
+├── spark-consumer/         # Spark Structured Streaming alerts
+├── whatsapp-race-engineer/ # FastAPI coaching bot (text + chart + diagram)
+├── kubernetes/             # K8s manifests (kafka, producer, spark-consumer)
+├── data/                   # Local telemetry samples (git-ignored dumps)
+└── docker-compose.yml      # Local Kafka for dev without K8s
+```
 
 ---
 
@@ -63,6 +76,20 @@ kubectl apply -f kubernetes/kafka/k8s-kafka.yaml
 kubectl apply -f kubernetes/producer/k8s-producer.yaml
 kubectl apply -f kubernetes/spark-consumer/k8s-consumer.yaml
 ```
+
+---
+
+## 📱 WhatsApp Race Engineer (Local Dev)
+
+```bash
+cd whatsapp-race-engineer
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8000
+```
+
+Then `POST /demo/query` for coaching JSON (answer + chart + diagram URLs), or open `GET /demo/preview` for a WhatsApp-like mockup. Works without Ollama via a deterministic fallback narrator; set `OLLAMA_BASE_URL` in `.env` to enable the local LLM. Tests: `python -m unittest discover -s tests` (5 tests, all passing).
 
 ---
 

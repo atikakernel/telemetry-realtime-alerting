@@ -1,11 +1,16 @@
+import os
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, window, avg, current_timestamp
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType, TimestampType
 
-# Configuration
-KAFKA_BROKER = "localhost:9092"
-TOPIC = "telemetry-acc"
-CHECKPOINT_DIR = "/home/diegokernel/proyectos/sim-racing-telemetry/spark-consumer/checkpoint"
+# Configuration (overridable via env for Docker/K8s)
+KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
+TOPIC = os.getenv("TOPIC", "telemetry-acc")
+CHECKPOINT_DIR = os.getenv(
+    "CHECKPOINT_DIR",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "checkpoint"),
+)
 
 # Define the schema matching acc_producer.py
 schema = StructType([
@@ -78,6 +83,7 @@ def main():
         .outputMode("complete") \
         .format("console") \
         .option("truncate", "false") \
+        .option("checkpointLocation", CHECKPOINT_DIR) \
         .start()
 
     query.awaitTermination()

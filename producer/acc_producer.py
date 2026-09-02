@@ -1,15 +1,16 @@
 import json
-import socket
 import logging
+import os
+import socket
 from kafka import KafkaProducer
 import sys
 import time
 
-# Configuration
-UDP_IP = "0.0.0.0"
-UDP_PORT = 9003
-KAFKA_BROKER = "localhost:9092"
-TOPIC = "telemetry-acc"
+# Configuration (overridable via env for Docker/K8s)
+UDP_IP = os.getenv("UDP_IP", "0.0.0.0")
+UDP_PORT = int(os.getenv("UDP_PORT", "9003"))
+KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
+TOPIC = os.getenv("TOPIC", "telemetry-acc")
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
