@@ -17,13 +17,16 @@ Sound practical and supportive.
 """.strip()
 
 PREFERRED_MODELS = (
+    "qwen3:8b",
+    "qwen3",
+    "gpt-oss:20b",
+    "gemma3:12b",
+    "gemma3:4b",
+    "llama3.1:8b",
     "hermes3:8b",
     "hermes3",
-    "qwen3:latest",
     "llama3.2:3b",
     "deepseek-r1:7b",
-    "deepseek-r1:14b",
-    "glm4:latest",
 )
 
 
@@ -71,6 +74,9 @@ class OllamaNarrator:
         payload = {
             "model": model_name,
             "stream": False,
+            # Qwen3 thinks by default; we want the direct answer only (faster,
+            # no <think> leakage). Ignored by non-reasoning models.
+            "think": False,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {

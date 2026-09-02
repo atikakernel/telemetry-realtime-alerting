@@ -12,7 +12,7 @@ The implementation is designed for your existing ACC telemetry flow. It reuses t
 
 - `OpenClaw` as the WhatsApp-facing gateway.
 - `Ollama` as the local LLM runtime.
-- `Hermes 3` as the default local model for the narration layer.
+- `Qwen3-8B` as the default local model for the narration layer (~5 GB, strong Spanish, Apache 2.0).
 
 ## Why this stack
 
@@ -78,8 +78,9 @@ OLLAMA_MODEL=auto
 
 `auto` means:
 
-- Prefer `hermes3:8b` when installed.
-- Otherwise pick an installed local model such as `qwen3:latest` or `llama3.2:3b`.
+- Prefer `qwen3:8b` when installed (`ollama pull qwen3:8b`).
+- Otherwise pick the best installed model in this order: `qwen3`, `gpt-oss:20b`, `gemma3:12b` / `gemma3:4b`, `llama3.1:8b`, then legacy `hermes3:8b` / `llama3.2:3b`.
+- Reasoning output is disabled (`think: false`) so Qwen3 answers directly without `<think>` blocks.
 
 That makes the service work immediately with a Docker Desktop Ollama container that already has models pulled.
 
@@ -122,11 +123,11 @@ The best fit for your idea is option 1, because OpenClaw already abstracts the W
 models:
   ollama:
     base_url: http://localhost:11434
-    default_model: hermes3:8b
+    default_model: qwen3:8b
 
 agents:
   acc-race-engineer:
-    model: ollama/hermes3:8b
+    model: ollama/qwen3:8b
     channels:
       - whatsapp
 ```
