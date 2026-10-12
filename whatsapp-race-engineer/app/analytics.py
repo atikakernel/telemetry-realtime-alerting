@@ -3,7 +3,7 @@ from __future__ import annotations
 from statistics import mean
 from uuid import uuid4
 
-from .models import TelemetryPoint, TelemetrySummary
+from .models import SessionComparison, TelemetryPoint, TelemetrySummary
 
 
 def _infer_driving_style(
@@ -101,4 +101,70 @@ def analyze_session(session: list[TelemetryPoint], session_id: str | None = None
         car=reference.car,
         track=reference.track,
         recommendations=recommendations,
+    )
+
+
+# Metrics where a higher value is better vs. worse, for session comparison.
+_HIGHER_IS_BETTER = ("avg_speed_kmh", "max_speed_kmh")
+_LOWER_IS_BETTER = ("overrev_events", "heavy_braking_events", "throttle_brake_overlap_ratio")
+_EPSILON = 1e-9
+
+
+def compare_sessions(baseline: TelemetrySummary, current: TelemetrySummary) -> SessionComparison:
+    """Compare two analyzed sessions and classify the driver's progress.
+
+    Returns per-metric deltas (current - baseline), the metrics that
+    improved or regressed, a verdict (improved / regressed / mixed /
+    stable), and human-readable highlights.
+    """
+    compared = _HIGHER_IS_BETTER + _LOWER_IS_BETTER
+    deltas: dict[str, float] = {}
+    improved: list[str] = []
+    regressed: list[str] = []
+
+    for metric in compared:
+        before = float(getattr(baseline, metric))
+        after = float(getattr(current, metric))
+        delta = round(after - before, 3)
+        deltas[metric] = delta
+        if abs(delta) <= _EPSILON:
+            continue
+        better = delta > 0 if metric in _HIGHER_IS_BETTER else delta < 0
+        (improved if better else regressed).append(metric)
+
+    if improved and regressed:
+        verdict = "mixed"
+    elif improved:
+        verdict = "improved"
+    elif regressed:
+        verdict = "regressed"
+    else:
+        verdict = "stable"
+
+    highlights: list[str] = []
+    if "avg_speed_kmh" in improved:
+        highlights.append(f"Velocidad media +{deltas['avg_speed_kmh']:.2f} km/h entre sesiones.")
+    if "avg_speed_kmh" in regressed:
+        highlights.append(f"Velocidad media {deltas['avg_speed_kmh']:.2f} km/h entre sesiones.")
+    if "overrev_events" in improved:
+        highlights.append(f"Sobre regimen reducido en {abs(deltas['overrev_events']):.0f} eventos.")
+    if "overrev_events" in regressed:
+        highlights.append(f"Sobre regimen aumentado en {deltas['overrev_events']:.0f} eventos; cuida el cambio de marcha.")
+    if "heavy_braking_events" in improved:
+        highlights.append(f"Frenadas fuertes reducidas en {abs(deltas['heavy_braking_events']):.0f} eventos.")
+    if "throttle_brake_overlap_ratio" in regressed:
+        highlights.append("Aumento la superposicion throttle/brake; limpia la transicion entre pedales.")
+    if baseline.driving_style != current.driving_style:
+        highlights.append(f"Estilo de manejo: {baseline.driving_style} -> {current.driving_style}.")
+    if not highlights:
+        highlights.append("Sin cambios relevantes entre sesiones; busca consistencia vuelta a vuelta.")
+
+    return SessionComparison(
+        baseline_session_id=baseline.session_id,
+        current_session_id=current.session_id,
+        deltas=deltas,
+        improved_metrics=improved,
+        regressed_metrics=regressed,
+        verdict=verdict,
+        highlights=highlights,
     )

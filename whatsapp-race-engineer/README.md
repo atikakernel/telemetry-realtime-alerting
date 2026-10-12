@@ -37,6 +37,13 @@ The API returns:
 - `diagram_url`: PNG diagram summarizing the session.
 - `whatsapp_messages`: ready-to-map payload objects for text plus images.
 
+`POST /demo/compare` accepts two sessions (`baseline` and `current`, each a
+list of telemetry points) and returns a `SessionComparison`: per-metric
+deltas, which metrics improved or regressed, a verdict
+(`improved` / `regressed` / `mixed` / `stable`), and Spanish coaching
+highlights. The comparison logic lives in `app/analytics.py`
+(`compare_sessions`).
+
 ## Project layout
 
 ```text

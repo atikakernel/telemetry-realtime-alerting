@@ -35,6 +35,23 @@ class TelemetrySummary(BaseModel):
     recommendations: list[str]
 
 
+class SessionComparison(BaseModel):
+    baseline_session_id: str
+    current_session_id: str
+    deltas: dict[str, float]
+    improved_metrics: list[str]
+    regressed_metrics: list[str]
+    verdict: str  # improved | regressed | mixed | stable
+    highlights: list[str]
+
+
+class CompareRequest(BaseModel):
+    baseline: list[TelemetryPoint] = Field(..., min_length=5)
+    current: list[TelemetryPoint] = Field(..., min_length=5)
+    baseline_session_id: str | None = None
+    current_session_id: str | None = None
+
+
 class WhatsAppMessage(BaseModel):
     type: str
     body: str | None = None

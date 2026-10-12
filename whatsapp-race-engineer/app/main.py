@@ -7,9 +7,9 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from .analytics import analyze_session
+from .analytics import analyze_session, compare_sessions
 from .llm import OllamaNarrator
-from .models import QueryRequest, QueryResponse, TelemetryPoint, WhatsAppMessage
+from .models import CompareRequest, QueryRequest, QueryResponse, SessionComparison, TelemetryPoint, WhatsAppMessage
 from .preview import build_whatsapp_preview_html
 from .sample_data import build_sample_session
 from .visuals import GENERATED_DIR, render_insight_diagram, render_trend_chart
@@ -212,6 +212,16 @@ async def whatsapp_webhook_receive(request: Request, background_tasks: Backgroun
         background_tasks.add_task(_deliver_demo_whatsapp_response, message)
 
     return {"status": "accepted", "messages": len(incoming_messages)}
+
+
+@app.post("/demo/compare", response_model=SessionComparison)
+def demo_compare(payload: CompareRequest) -> SessionComparison:
+    try:
+        baseline = analyze_session(payload.baseline, session_id=payload.baseline_session_id)
+        current = analyze_session(payload.current, session_id=payload.current_session_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return compare_sessions(baseline, current)
 
 
 @app.post("/demo/query", response_model=QueryResponse)
